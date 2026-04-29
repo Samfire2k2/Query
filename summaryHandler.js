@@ -22,11 +22,23 @@ export async function summarizeMessages(messages) {
       messages: [
         {
           role: 'user',
-          content: `Summarize this Discord conversation. Include: main topics, key decisions, action items, sentiment, and key contributors. Keep it concise and well-formatted.\n\nMessages (${messages.length}):\n${messageText}`,
+          content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
+
+1. **Main Discussion Topics** - What were the primary topics discussed?
+2. **Key Decisions** - Any conclusions or decisions made?
+3. **Action Items** - Any follow-ups or next steps?
+4. **Important Disagreements** - Any conflicts or differing opinions?
+5. **Overall Sentiment** - What was the tone (constructive, heated, supportive, etc)?
+6. **Key Contributors** - Who were the main participants and what did they contribute?
+
+Format your summary with clear markdown sections, bullet points, and emphasis on important details. Make it professional yet conversational.
+
+Discord Conversation (${messages.length} messages):
+${messageText}`,
         },
       ],
       model: 'groq/compound',
-      max_tokens: 1500,
+      max_tokens: 2048,
       temperature: 0.7,
     });
 
