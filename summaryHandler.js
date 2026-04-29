@@ -50,7 +50,7 @@ export async function fetchChannelMessages(channelId, token) {
   const allMessages = [];
   let lastMessageId = null;
   let pageCount = 0;
-  const MAX_MESSAGES = 300; // Reduced to prevent "Request Entity Too Large" errors
+  const MAX_MESSAGES = 500; // Optimized: 500 messages with 200 char truncation
 
   try {
     while (true) {
@@ -86,7 +86,7 @@ export async function fetchChannelMessages(channelId, token) {
         .map((msg) => ({
           author: msg.author.username,
           authorId: msg.author.id,
-          content: msg.content.slice(0, 300), // Limit each message to 300 chars to prevent size issues
+          content: msg.content.slice(0, 200), // Limit each message to 200 chars for better token efficiency
           timestamp: msg.timestamp,
         }))
         .filter((msg) => msg.content.length > 0);
@@ -107,7 +107,7 @@ export async function fetchChannelMessages(channelId, token) {
 
     // Return only the last MAX_MESSAGES and reverse to get chronological order
     const messages = allMessages.slice(-MAX_MESSAGES).reverse();
-    console.log(`📊 Returning ${messages.length} messages for processing (truncated to 300 chars each)`);
+    console.log(`📊 Returning ${messages.length} messages for processing (truncated to 200 chars each)`);
     return messages;
   } catch (error) {
     console.error('Error fetching messages:', error);
