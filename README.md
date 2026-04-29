@@ -1,16 +1,16 @@
 # Discord Message Summarizer Bot
 
-A Discord bot that reads messages from a channel and creates AI-powered summaries using Groq API (free tier).
+A Discord bot that reads messages from a channel and creates AI-powered summaries using **Llama via Together AI** (100% free tier).
 
 ## Features
 
-✅ Summarize the last **100 messages** from a channel (optimized for groq/compound API limits)
+✅ Summarize the last **100 messages** from a channel (using Llama 3.8B Instruct)
 ✅ **Professional, detailed summaries** with structure, topics, decisions, and action items
 ✅ Instant single-pass summarization (no chunking needed)
 ✅ Filter by user or time period
 ✅ Search for keywords and summarize
 ✅ Get channel statistics
-✅ 100% free (uses Groq free tier)
+✅ 100% free (uses Together AI free tier - no credit card needed)
 ✅ Respects Discord rate limits
 
 ## Setup
@@ -22,9 +22,10 @@ A Discord bot that reads messages from a channel and creates AI-powered summarie
 - Copy the **TOKEN** and save it
 - Go to **General Information** and copy **APP_ID** and **PUBLIC_KEY**
 
-### 2. Get Groq API Key (Free)
-- Go to https://console.groq.com/keys
-- Create a new API key (free tier available, no credit card needed)
+### 2. Get Together AI API Key (Free)
+- Go to https://www.together.ai/ and sign up (free tier available)
+- Go to Settings → API Keys
+- Create a new API key (no credit card needed)
 
 ### 3. Install & Configure
 ```bash
@@ -42,7 +43,7 @@ Create `.env` file:
 APP_ID=your_app_id_here
 DISCORD_TOKEN=your_bot_token_here
 PUBLIC_KEY=your_public_key_here
-GROQ_API_KEY=your_groq_api_key_here
+TOGETHER_API_KEY=your_together_api_key_here
 PORT=3000
 ```
 
@@ -77,12 +78,13 @@ npm start
 
 ## Model & Performance
 
-### Current Model: `groq/compound`
+### Current Model: `Llama 3.8B Instruct` (via Together AI)
 
 **Specifications:**
-- **Tokens per Minute (TPM)**: 70,000 
-- **Requests per Day**: 250 (perfect for a personal bot)
-- **Max Tokens per Request**: ~150,000 
+- **Free Tier**: Unlimited (rate limited but generous)
+- **Requests per Minute**: Very generous on free tier
+- **Max Tokens per Request**: ~4000
+- **Quality**: Excellent for summarization tasks 
 
 **Optimizations:**
 - ✅ Maximum 100 messages per request (prevents API size errors)
@@ -123,17 +125,17 @@ npm start
 - Bot must have permissions: "Read Messages", "Send Messages", "Read Message History"
 
 ### "Model decommissioned"
-- The Groq model has been retired. Current model: `llama-3.1-8b-instant`
-- Update the bot or edit the model in `summaryHandler.js`
+- The model is still active. If you get an error, check your API key
+- Or visit https://www.together.ai/ to verify your account status
 
 ### "Request too large"
 - You're trying to summarize too many messages
 - Bot is limited to 100 messages on free plan
-- Reduce the number or upgrade Groq
+- Or upgrade your Together AI account
 
 ## Notes
 
 - The bot respects Discord rate limits (500ms delay between API calls)
 - Summaries are generated on-demand (no caching)
-- Free Groq tier is sufficient for most use cases
-- ✅ Similar structure to Daft Punk bot
+- Free Together AI tier is sufficient for most use cases
+- ✅ Together AI has no message content moderation (unlike some APIs)

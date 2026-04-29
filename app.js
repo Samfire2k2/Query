@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Check required environment variables
-const requiredEnvVars = ['DISCORD_TOKEN', 'PUBLIC_KEY', 'APP_ID', 'GROQ_API_KEY'];
+const requiredEnvVars = ['DISCORD_TOKEN', 'PUBLIC_KEY', 'APP_ID', 'TOGETHER_API_KEY'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
@@ -67,7 +67,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         // Send status message
         await sendFollowup('⏳ Fetching last 100 messages from this channel...', body.token);
 
-        // Fetch messages from channel (limited to last 100 for Groq free tier)
+        // Fetch messages from channel (limited to last 100 for Together AI free tier)
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
 
         if (messages.length === 0) {

@@ -1,9 +1,3 @@
-import { Groq } from 'groq-sdk';
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 export async function summarizeMessages(messages) {
   if (!messages || messages.length === 0) {
     return 'No messages to summarize.';
@@ -18,11 +12,18 @@ export async function summarizeMessages(messages) {
   console.log(`📊 Request size: ${requestSize} chars, ${messages.length} messages`);
 
   try {
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.TOGETHER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'meta-llama/Llama-3-8b-instruct',
+        messages: [
+          {
+            role: 'user',
+            content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
 
 1. **Main Discussion Topics** - What were the primary topics discussed?
 2. **Key Decisions** - Any conclusions or decisions made?
@@ -35,16 +36,24 @@ Format your summary with clear markdown sections, bullet points, and emphasis on
 
 Discord Conversation (${messages.length} messages):
 ${messageText}`,
-        },
-      ],
-      model: 'groq/compound',
-      max_tokens: 2048,
-      temperature: 0.7,
+          },
+        ],
+        max_tokens: 2048,
+        temperature: 0.7,
+      }),
     });
 
-    return chatCompletion.choices[0]?.message?.content || 'Could not generate summary.';
+    if (!response.ok) {
+      const error = await response.text();
+      console.error(`❌ Together AI Error: ${response.status}`);
+      console.error(`Error details: ${error}`);
+      return 'Error generating summary. Please try again later.';
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || 'Could not generate summary.';
   } catch (error) {
-    console.error('Error generating summary with Groq:', error);
+    console.error('Error generating summary with Together AI:', error);
     return 'Error generating summary. Please try again later.';
   }
 }
