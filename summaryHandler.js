@@ -38,6 +38,7 @@ export async function fetchChannelMessages(channelId, token) {
   const allMessages = [];
   let lastMessageId = null;
   let pageCount = 0;
+  const MAX_MESSAGES = 300; // Limit to last 300 messages to stay within Groq free tier
 
   try {
     while (true) {
@@ -64,7 +65,7 @@ export async function fetchChannelMessages(channelId, token) {
       const data = await res.json();
       
       if (data.length === 0) {
-        console.log(`✅ Fetched ${pageCount} pages of messages`);
+        console.log(`✅ Fetched ${pageCount} pages of messages (${allMessages.length} total)`);
         break;
       }
 
@@ -82,12 +83,20 @@ export async function fetchChannelMessages(channelId, token) {
       lastMessageId = data[data.length - 1].id;
       pageCount++;
       
+      // Stop if we've reached the limit
+      if (allMessages.length >= MAX_MESSAGES) {
+        console.log(`✅ Reached message limit of ${MAX_MESSAGES}`);
+        break;
+      }
+      
       // Add delay to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    // Reverse to get chronological order
-    return allMessages.reverse();
+    // Return only the last MAX_MESSAGES and reverse to get chronological order
+    const messages = allMessages.slice(-MAX_MESSAGES).reverse();
+    console.log(`📊 Returning ${messages.length} messages for processing`);
+    return messages;
   } catch (error) {
     console.error('Error fetching messages:', error);
     return [];

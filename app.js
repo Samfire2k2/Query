@@ -65,9 +65,9 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Send status message
-        await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
 
-        // Fetch ALL messages from channel
+        // Fetch messages from channel (limited to last 300 for Groq free tier)
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
 
         if (messages.length === 0) {
@@ -82,7 +82,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         // Send summary
         await sendFollowup(
-          `📋 **Summary** (${messages.length} messages analyzed)\n\n${summary}`,
+          `📋 **Summary** (${messages.length} last messages analyzed)\n\n${summary}`,
           body.token
         );
       } catch (error) {
@@ -98,7 +98,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const userId = body.data.options?.find((o) => o.name === 'user')?.value;
 
-        await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const userMessages = filterMessagesByUser(messages, userId);
 
@@ -126,7 +126,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const period = body.data.options?.find((o) => o.name === 'period')?.value;
 
-        await sendFollowup(`⏳ Fetching all messages from this channel...`, body.token);
+        await sendFollowup(`⏳ Fetching last 300 messages from this channel...`, body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const periodMessages = filterMessagesByPeriod(messages, period);
 
@@ -154,7 +154,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const keyword = body.data.options?.find((o) => o.name === 'keyword')?.value;
 
-        await sendFollowup(`⏳ Fetching all messages and searching for "${keyword}"...`, body.token);
+        await sendFollowup(`⏳ Fetching last 300 messages and searching for "${keyword}"...`, body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const foundMessages = filterMessagesByKeyword(messages, keyword);
 
@@ -181,7 +181,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         const channelId = body.channel_id;
 
-        await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const stats = getChannelStats(messages);
 
