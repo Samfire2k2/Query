@@ -69,6 +69,7 @@ export async function fetchChannelMessages(channelId, token) {
       const formatted = data
         .map((msg) => ({
           author: msg.author.username,
+          authorId: msg.author.id,
           content: msg.content,
           timestamp: msg.timestamp,
         }))
@@ -88,4 +89,75 @@ export async function fetchChannelMessages(channelId, token) {
     console.error('Error fetching messages:', error);
     return [];
   }
+}
+
+// Filter messages by user
+export function filterMessagesByUser(messages, userId) {
+  return messages.filter((msg) => msg.authorId === userId);
+}
+
+// Filter messages by time period
+export function filterMessagesByPeriod(messages, period) {
+  const now = new Date();
+  let startTime;
+
+  switch (period) {
+    case '1h':
+      startTime = new Date(now.getTime() - 1 * 60 * 60 * 1000);
+      break;
+    case '24h':
+      startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      break;
+    case '7d':
+      startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case '30d':
+      startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      return messages;
+  }
+
+  return messages.filter((msg) => new Date(msg.timestamp) >= startTime);
+}
+
+// Filter messages by keyword
+export function filterMessagesByKeyword(messages, keyword) {
+  const lowerKeyword = keyword.toLowerCase();
+  return messages.filter((msg) => msg.content.toLowerCase().includes(lowerKeyword));
+}
+
+// Get channel statistics
+export function getChannelStats(messages) {
+  if (messages.length === 0) {
+    return {
+      totalMessages: 0,
+      uniqueUsers: 0,
+      topUsers: [],
+      averageMessagesPerUser: 0,
+      dateRange: 'N/A',
+    };
+  }
+
+  const userCounts = {};
+  messages.forEach((msg) => {
+    userCounts[msg.author] = (userCounts[msg.author] || 0) + 1;
+  });
+
+  const topUsers = Object.entries(userCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([name, count]) => `${name} (${count})`);
+
+  const dates = messages.map((msg) => new Date(msg.timestamp));
+  const oldestDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+  const newestDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+
+  return {
+    totalMessages: messages.length,
+    uniqueUsers: Object.keys(userCounts).length,
+    topUsers,
+    averageMessagesPerUser: (messages.length / Object.keys(userCounts).length).toFixed(1),
+    dateRange: `${oldestDate.toLocaleDateString()} - ${newestDate.toLocaleDateString()}`,
+  };
 }

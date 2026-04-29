@@ -1,7 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import { verifyKeyMiddleware } from 'discord-interactions';
-import { summarizeMessages, fetchChannelMessages } from './summaryHandler.js';
+import { 
+  summarizeMessages, 
+  fetchChannelMessages,
+  filterMessagesByUser,
+  filterMessagesByPeriod,
+  filterMessagesByKeyword,
+  getChannelStats
+} from './summaryHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +76,119 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
       } catch (error) {
         console.error('Error handling summarize command:', error);
         await sendFollowup('❌ Error generating summary. Please try again.', body.token);
+      }
+    }
+
+    if (commandName === 'summarize_user') {
+      try {
+        res.json({ type: 5 });
+
+        const channelId = body.channel_id;
+        const userId = body.data.options?.find((o) => o.name === 'user')?.value;
+
+        await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
+        const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
+        const userMessages = filterMessagesByUser(messages, userId);
+
+        if (userMessages.length === 0) {
+          return await sendFollowup('No messages found from this user.', body.token);
+        }
+
+        await sendFollowup(`✅ Found ${userMessages.length} messages. Generating summary...`, body.token);
+        const summary = await summarizeMessages(userMessages);
+
+        await sendFollowup(
+          `📋 **Summary for User** (${userMessages.length} messages)\n\n${summary}`,
+          body.token
+        );
+      } catch (error) {
+        console.error('Error handling summarize_user command:', error);
+        await sendFollowup('❌ Error generating summary. Please try again.', body.token);
+      }
+    }
+
+    if (commandName === 'summarize_period') {
+      try {
+        res.json({ type: 5 });
+
+        const channelId = body.channel_id;
+        const period = body.data.options?.find((o) => o.name === 'period')?.value;
+
+        await sendFollowup(`⏳ Fetching all messages from this channel...`, body.token);
+        const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
+        const periodMessages = filterMessagesByPeriod(messages, period);
+
+        if (periodMessages.length === 0) {
+          return await sendFollowup(`No messages found in the last ${period}.`, body.token);
+        }
+
+        await sendFollowup(`✅ Found ${periodMessages.length} messages. Generating summary...`, body.token);
+        const summary = await summarizeMessages(periodMessages);
+
+        await sendFollowup(
+          `📋 **Summary (Last ${period})** (${periodMessages.length} messages)\n\n${summary}`,
+          body.token
+        );
+      } catch (error) {
+        console.error('Error handling summarize_period command:', error);
+        await sendFollowup('❌ Error generating summary. Please try again.', body.token);
+      }
+    }
+
+    if (commandName === 'search_summarize') {
+      try {
+        res.json({ type: 5 });
+
+        const channelId = body.channel_id;
+        const keyword = body.data.options?.find((o) => o.name === 'keyword')?.value;
+
+        await sendFollowup(`⏳ Fetching all messages and searching for "${keyword}"...`, body.token);
+        const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
+        const foundMessages = filterMessagesByKeyword(messages, keyword);
+
+        if (foundMessages.length === 0) {
+          return await sendFollowup(`No messages found containing "${keyword}".`, body.token);
+        }
+
+        await sendFollowup(`✅ Found ${foundMessages.length} messages. Generating summary...`, body.token);
+        const summary = await summarizeMessages(foundMessages);
+
+        await sendFollowup(
+          `📋 **Summary (Search: "${keyword}")** (${foundMessages.length} messages)\n\n${summary}`,
+          body.token
+        );
+      } catch (error) {
+        console.error('Error handling search_summarize command:', error);
+        await sendFollowup('❌ Error generating summary. Please try again.', body.token);
+      }
+    }
+
+    if (commandName === 'stats') {
+      try {
+        res.json({ type: 5 });
+
+        const channelId = body.channel_id;
+
+        await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
+        const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
+        const stats = getChannelStats(messages);
+
+        const statsMessage = `
+📊 **Channel Statistics**
+
+Total Messages: ${stats.totalMessages}
+Unique Users: ${stats.uniqueUsers}
+Average Messages/User: ${stats.averageMessagesPerUser}
+Date Range: ${stats.dateRange}
+
+**Top 5 Users:**
+${stats.topUsers.map((user, i) => `${i + 1}. ${user}`).join('\n')}
+        `.trim();
+
+        await sendFollowup(statsMessage, body.token);
+      } catch (error) {
+        console.error('Error handling stats command:', error);
+        await sendFollowup('❌ Error fetching statistics. Please try again.', body.token);
       }
     }
   }
