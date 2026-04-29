@@ -1,7 +1,7 @@
 {
   "name": "discord-message-summarizer",
   "version": "1.0.0",
-  "description": "Discord bot that summarizes messages from a channel using Together AI (Llama)",
+  "description": "Discord bot that summarizes messages from a channel using Mistral via Hugging Face API",
   "type": "module",
   "main": "app.js",
   "scripts": {

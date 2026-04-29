@@ -1,16 +1,16 @@
 # Discord Message Summarizer Bot
 
-A Discord bot that reads messages from a channel and creates AI-powered summaries using **Llama via Together AI** (100% free tier).
+A Discord bot that reads messages from a channel and creates AI-powered summaries using **Mistral via Hugging Face Inference API** (100% free tier, no credit card).
 
 ## Features
 
-✅ Summarize the last **100 messages** from a channel (using Llama 3.8B Instruct)
+✅ Summarize the last **100 messages** from a channel (using Mistral 7B Instruct)
 ✅ **Professional, detailed summaries** with structure, topics, decisions, and action items
 ✅ Instant single-pass summarization (no chunking needed)
 ✅ Filter by user or time period
 ✅ Search for keywords and summarize
 ✅ Get channel statistics
-✅ 100% free (uses Together AI free tier - no credit card needed)
+✅ 100% free (uses Hugging Face Inference API - no credit card needed)
 ✅ Respects Discord rate limits
 
 ## Setup
@@ -22,10 +22,11 @@ A Discord bot that reads messages from a channel and creates AI-powered summarie
 - Copy the **TOKEN** and save it
 - Go to **General Information** and copy **APP_ID** and **PUBLIC_KEY**
 
-### 2. Get Together AI API Key (Free)
-- Go to https://www.together.ai/ and sign up (free tier available)
-- Go to Settings → API Keys
-- Create a new API key (no credit card needed)
+### 2. Get Hugging Face API Key (Free)
+- Go to https://huggingface.co/ and sign up (free, no credit card needed)
+- Go to Settings → Access Tokens
+- Create a new token (read access is enough)
+- Copy the token
 
 ### 3. Install & Configure
 ```bash
@@ -43,7 +44,7 @@ Create `.env` file:
 APP_ID=your_app_id_here
 DISCORD_TOKEN=your_bot_token_here
 PUBLIC_KEY=your_public_key_here
-TOGETHER_API_KEY=your_together_api_key_here
+HUGGINGFACE_API_KEY=your_huggingface_token_here
 PORT=3000
 ```
 
@@ -78,13 +79,13 @@ npm start
 
 ## Model & Performance
 
-### Current Model: `Llama 3.8B Instruct` (via Together AI)
+### Current Model: `Mistral 7B Instruct` (via Hugging Face Inference API)
 
 **Specifications:**
-- **Free Tier**: Unlimited (rate limited but generous)
-- **Requests per Minute**: Very generous on free tier
-- **Max Tokens per Request**: ~4000
-- **Quality**: Excellent for summarization tasks 
+- **Free Tier**: Unlimited (monthly rate limits)
+- **Quality**: Excellent for summarization
+- **Speed**: Fast inference
+- **No credit card**: 100% free for personal use 
 
 **Optimizations:**
 - ✅ Maximum 100 messages per request (prevents API size errors)
@@ -125,17 +126,17 @@ npm start
 - Bot must have permissions: "Read Messages", "Send Messages", "Read Message History"
 
 ### "Model decommissioned"
-- The model is still active. If you get an error, check your API key
-- Or visit https://www.together.ai/ to verify your account status
+- The model is still available. If you get a rate limit error, wait a few minutes and try again
+- Or visit https://huggingface.co/ to check your API key status
 
 ### "Request too large"
 - You're trying to summarize too many messages
 - Bot is limited to 100 messages on free plan
-- Or upgrade your Together AI account
+- Or increase `MAX_MESSAGES` in summaryHandler.js
 
 ## Notes
 
 - The bot respects Discord rate limits (500ms delay between API calls)
 - Summaries are generated on-demand (no caching)
-- Free Together AI tier is sufficient for most use cases
-- ✅ Together AI has no message content moderation (unlike some APIs)
+- Free Hugging Face Inference API tier is sufficient for most use cases
+- ✅ Mistral is an excellent open-source model for summarization

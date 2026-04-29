@@ -12,18 +12,7 @@ export async function summarizeMessages(messages) {
   console.log(`📊 Request size: ${requestSize} chars, ${messages.length} messages`);
 
   try {
-    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.TOGETHER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/Llama-3-8b-instruct',
-        messages: [
-          {
-            role: 'user',
-            content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
+    const systemPrompt = `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
 
 1. **Main Discussion Topics** - What were the primary topics discussed?
 2. **Key Decisions** - Any conclusions or decisions made?
@@ -32,28 +21,44 @@ export async function summarizeMessages(messages) {
 5. **Overall Sentiment** - What was the tone (constructive, heated, supportive, etc)?
 6. **Key Contributors** - Who were the main participants and what did they contribute?
 
-Format your summary with clear markdown sections, bullet points, and emphasis on important details. Make it professional yet conversational.
+Format your summary with clear markdown sections, bullet points, and emphasis on important details. Make it professional yet conversational.`;
 
-Discord Conversation (${messages.length} messages):
-${messageText}`,
-          },
-        ],
-        max_tokens: 2048,
-        temperature: 0.7,
+    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: `${systemPrompt}\n\nDiscord Conversation (${messages.length} messages):\n${messageText}`,
+        parameters: {
+          max_new_tokens: 1024,
+          temperature: 0.7,
+        },
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error(`❌ Together AI Error: ${response.status}`);
+      console.error(`❌ Hugging Face Error: ${response.status}`);
       console.error(`Error details: ${error}`);
       return 'Error generating summary. Please try again later.';
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || 'Could not generate summary.';
+    const summary = Array.isArray(data) ? data[0]?.generated_text : data?.generated_text;
+    
+    if (summary) {
+      // Extract only the summary part (remove the input from output)
+      const summaryPart = summary.includes('Discord Conversation') 
+        ? summary.split('Discord Conversation')[1].trim() 
+        : summary;
+      return summaryPart || 'Could not generate summary.';
+    }
+    
+    return 'Could not generate summary.';
   } catch (error) {
-    console.error('Error generating summary with Together AI:', error);
+    console.error('Error generating summary with Hugging Face:', error);
     return 'Error generating summary. Please try again later.';
   }
 }
