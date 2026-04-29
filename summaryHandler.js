@@ -9,17 +9,6 @@ export async function summarizeMessages(messages) {
     return 'No messages to summarize.';
   }
 
-  // For large message sets, use hierarchical summarization to save tokens
-  if (messages.length > 150) {
-    console.log(`📊 Using hierarchical summarization for ${messages.length} messages`);
-    return await hierarchicalSummarize(messages);
-  }
-
-  // For smaller sets, direct summarization
-  return await directSummarize(messages);
-}
-
-async function directSummarize(messages) {
   // Format messages for summarization
   const messageText = messages
     .map((msg) => `${msg.author}: ${msg.content}`)
@@ -30,22 +19,23 @@ async function directSummarize(messages) {
       messages: [
         {
           role: 'user',
-          content: `You are a professional technical writer. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
+          content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
 
-1. Main discussion topics and themes
-2. Key decisions or conclusions
-3. Action items or follow-ups (if any)
-4. Important disagreements or conflicts (if any)
-5. Overall sentiment and tone
+1. **Main Discussion Topics** - What were the primary topics discussed?
+2. **Key Decisions** - Any conclusions or decisions made?
+3. **Action Items** - Any follow-ups or next steps?
+4. **Important Disagreements** - Any conflicts or differing opinions?
+5. **Overall Sentiment** - What was the tone (constructive, heated, supportive, etc)?
+6. **Key Contributors** - Who were the main participants and what did they contribute?
 
-Format the summary with clear sections and bullet points where appropriate. Make it concise yet informative.
+Format your summary with clear markdown sections, bullet points, and emphasis on important details. Make it professional yet conversational.
 
-Discord Messages:
+Discord Conversation (${messages.length} messages):
 ${messageText}`,
         },
       ],
-      model: 'llama-3.1-8b-instant',
-      max_tokens: 1024,
+      model: 'groq/compound',
+      max_tokens: 2048,
       temperature: 0.7,
     });
 
@@ -56,82 +46,11 @@ ${messageText}`,
   }
 }
 
-async function hierarchicalSummarize(messages) {
-  const chunkSize = 100;
-  const chunks = [];
-
-  // Divide messages into chunks
-  for (let i = 0; i < messages.length; i += chunkSize) {
-    chunks.push(messages.slice(i, i + chunkSize));
-  }
-
-  console.log(`📚 Summarizing ${chunks.length} chunks...`);
-
-  // Summarize each chunk
-  const chunkSummaries = [];
-  for (let i = 0; i < chunks.length; i++) {
-    const chunkText = chunks[i]
-      .map((msg) => `${msg.author}: ${msg.content}`)
-      .join('\n');
-
-    try {
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'user',
-            content: `Summarize the following Discord conversation concisely. Focus on main topics, decisions, and action items:
-
-${chunkText}`,
-          },
-        ],
-        model: 'llama-3.1-8b-instant',
-        max_tokens: 300,
-        temperature: 0.7,
-      });
-
-      const summary = chatCompletion.choices[0]?.message?.content || '';
-      chunkSummaries.push(summary);
-      console.log(`✅ Chunk ${i + 1}/${chunks.length} summarized`);
-
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 200));
-    } catch (error) {
-      console.error(`Error summarizing chunk ${i + 1}:`, error);
-      chunkSummaries.push('Error summarizing this section.');
-    }
-  }
-
-  // Combine chunk summaries and create final summary
-  const combinedSummaries = chunkSummaries.join('\n\n---\n\n');
-
-  try {
-    const finalSummary = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: `You are a professional summarizer. Please synthesize the following summaries into one cohesive, well-structured final summary. Remove redundancies and emphasize the most important information. Format with clear sections and bullet points.
-
-Section Summaries:
-${combinedSummaries}`,
-        },
-      ],
-      model: 'llama-3.1-8b-instant',
-      max_tokens: 1024,
-      temperature: 0.7,
-    });
-
-    return finalSummary.choices[0]?.message?.content || 'Could not generate final summary.';
-  } catch (error) {
-    console.error('Error generating final summary:', error);
-    return `Chunk Summaries:\n\n${combinedSummaries}`;
-  }
-}
-
 export async function fetchChannelMessages(channelId, token) {
   const allMessages = [];
   let lastMessageId = null;
   let pageCount = 0;
-  const MAX_MESSAGES = 600; // Increased from 300 - hierarchical summarization handles this efficiently
+  const MAX_MESSAGES = 1000; // groq/compound can handle this easily with 70K TPM
 
   try {
     while (true) {
@@ -188,7 +107,7 @@ export async function fetchChannelMessages(channelId, token) {
 
     // Return only the last MAX_MESSAGES and reverse to get chronological order
     const messages = allMessages.slice(-MAX_MESSAGES).reverse();
-    console.log(`📊 Returning ${messages.length} messages for processing`);
+    console.log(`📊 Returning ${messages.length} messages for processing (groq/compound: 70K TPM)`);
     return messages;
   } catch (error) {
     console.error('Error fetching messages:', error);

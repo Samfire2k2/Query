@@ -4,9 +4,9 @@ A Discord bot that reads messages from a channel and creates AI-powered summarie
 
 ## Features
 
-✅ Summarize the last **600 messages** from a channel (auto-divided into chunks for quality)
-✅ **Professional summaries** with clear structure and key points
-✅ Hierarchical summarization (chunks → summaries → final summary)
+✅ Summarize the last **1000 messages** from a channel (powered by groq/compound - 70K TPM!)
+✅ **Professional, detailed summaries** with structure, topics, decisions, and action items
+✅ Instant single-pass summarization (no chunking needed)
 ✅ Filter by user or time period
 ✅ Search for keywords and summarize
 ✅ Get channel statistics
@@ -68,32 +68,45 @@ npm start
 
 | Command | Description |
 |---------|-------------|
-| `/summarize` | Summarize the last 600 messages from the channel (auto-chunked) |
-| `/summarize_user` | Summarize messages from a specific user (up to 600) |
-| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) - up to 600 |
-| `/search_summarize` | Search for keyword and summarize matching messages (up to 600) |
-| `/stats` | Show channel statistics (last 600 messages) |
+| `/summarize` | Summarize the last 1000 messages from the channel (instant!) |
+| `/summarize_user` | Summarize messages from a specific user (up to 1000) |
+| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) - up to 1000 |
+| `/search_summarize` | Search for keyword and summarize matching messages (up to 1000) |
+| `/stats` | Show channel statistics (last 1000 messages) |
 | `/test` | Check if bot is online |
 
-## Limitations & Optimization
+## Model & Performance
 
-⚠️ **Message Range**: The bot analyzes the last **600 messages** per request
+### Current Model: `groq/compound`
 
-**Why 600?**
-- Free tier Groq limit: 6000 tokens/minute
-- 600 messages are automatically split into chunks (100 messages each)
-- Each chunk is summarized separately, then combined
-- This **reduces token usage** and improves **summary quality**
+**Specifications:**
+- **Tokens per Minute (TPM)**: 70,000 (12x better than previous!)
+- **Requests per Day**: 250 (perfect for a personal bot)
+- **Max Tokens per Request**: ~150,000 (can handle 1000+ messages easily)
 
-**Technical Details:**
-- Messages 1-100 → Summary A
-- Messages 101-200 → Summary B  
-- Messages 201-300 → Summary C
-- Summary A + B + C → Final comprehensive summary
+**What this means:**
+- ✅ Analyze 1000 messages in **one request** (no chunking)
+- ✅ Instant responses (single API call)
+- ✅ Better quality summaries (larger, more capable model)
+- ✅ Perfect for personal/small team Discord servers
+- ⚠️ 250 requests/day limit (plenty for personal use)
 
-**Upgrading?**
-- Groq Dev Tier: Remove the hierarchical limitation (analyze 1000+ messages at once)
-- Change `MAX_MESSAGES` in `summaryHandler.js` if you upgrade
+**Previous Model**: llama-3.1-8b-instant (6K TPM) → Now upgraded to groq/compound (70K TPM)
+
+## Limitations & Notes
+
+⚠️ **Rate Limits**: 
+- 250 API requests per day (each summary = 1 request)
+- That's ~8 summaries per hour = More than enough for a personal bot!
+
+📊 **Message Range**: 
+- Analyzes the last **1000 messages** per request
+- Messages older than 1000 won't be included
+- Perfect for analyzing recent conversations
+
+💡 **If you need more:**
+- Switch to `llama-3.3-70b-versatile` (12K TPM, 1000 requests/day)
+- Request Groq tier upgrade for even higher limits
 
 ## Troubleshooting
 
