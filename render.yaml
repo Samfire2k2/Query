@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: discord-message-summarizer
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DISCORD_TOKEN
+        scope: build
+      - key: PUBLIC_KEY
+        scope: build
+      - key: APP_ID
+        scope: build
+      - key: GROQ_API_KEY
+        scope: build
+      - key: PORT
+        value: 3000
