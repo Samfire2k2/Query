@@ -4,7 +4,9 @@ A Discord bot that reads messages from a channel and creates AI-powered summarie
 
 ## Features
 
-✅ Summarize the last 300 messages from a channel
+✅ Summarize the last **600 messages** from a channel (auto-divided into chunks for quality)
+✅ **Professional summaries** with clear structure and key points
+✅ Hierarchical summarization (chunks → summaries → final summary)
 ✅ Filter by user or time period
 ✅ Search for keywords and summarize
 ✅ Get channel statistics
@@ -66,24 +68,32 @@ npm start
 
 | Command | Description |
 |---------|-------------|
-| `/summarize` | Summarize the last 300 messages from the channel |
-| `/summarize_user` | Summarize messages from a specific user |
-| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) |
-| `/search_summarize` | Search for keyword and summarize matching messages |
-| `/stats` | Show channel statistics (message count, top users, etc) |
+| `/summarize` | Summarize the last 600 messages from the channel (auto-chunked) |
+| `/summarize_user` | Summarize messages from a specific user (up to 600) |
+| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) - up to 600 |
+| `/search_summarize` | Search for keyword and summarize matching messages (up to 600) |
+| `/stats` | Show channel statistics (last 600 messages) |
 | `/test` | Check if bot is online |
 
-## Limitations
+## Limitations & Optimization
 
-⚠️ **Message Limit**: The bot summarizes the last **300 messages** to stay within Groq's free tier token limits (6000 tokens/minute)
+⚠️ **Message Range**: The bot analyzes the last **600 messages** per request
 
-- Free tier model: `llama-3.1-8b-instant`
-- Max tokens per minute: 6000
-- Typical usage: ~300 recent messages = ~20k tokens (need to chunk)
+**Why 600?**
+- Free tier Groq limit: 6000 tokens/minute
+- 600 messages are automatically split into chunks (100 messages each)
+- Each chunk is summarized separately, then combined
+- This **reduces token usage** and improves **summary quality**
 
-**Want to summarize more?** 
-- Upgrade Groq to Dev Tier at https://console.groq.com/settings/billing
-- Or increase `MAX_MESSAGES` in `summaryHandler.js`
+**Technical Details:**
+- Messages 1-100 → Summary A
+- Messages 101-200 → Summary B  
+- Messages 201-300 → Summary C
+- Summary A + B + C → Final comprehensive summary
+
+**Upgrading?**
+- Groq Dev Tier: Remove the hierarchical limitation (analyze 1000+ messages at once)
+- Change `MAX_MESSAGES` in `summaryHandler.js` if you upgrade
 
 ## Troubleshooting
 
