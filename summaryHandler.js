@@ -22,7 +22,7 @@ export async function summarizeMessages(messages) {
           content: `Please summarize the following Discord messages in a concise and helpful way. Focus on the main topics and key points:\n\n${messageText}`,
         },
       ],
-      model: 'mixtral-8x7b-32768',
+      model: 'llama-3.1-70b-versatile',
       max_tokens: 1024,
       temperature: 0.7,
     });
@@ -54,7 +54,10 @@ export async function fetchChannelMessages(channelId, token) {
       });
 
       if (!res.ok) {
+        const errorText = await res.text();
         console.error(`❌ Error fetching messages: ${res.status}`);
+        console.error(`Error details: ${errorText}`);
+        console.error(`Channel ID: ${channelId}`);
         break;
       }
 

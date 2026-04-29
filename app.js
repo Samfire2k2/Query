@@ -13,6 +13,15 @@ import {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Check required environment variables
+const requiredEnvVars = ['DISCORD_TOKEN', 'PUBLIC_KEY', 'APP_ID', 'GROQ_API_KEY'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`❌ Missing environment variables: ${missingEnvVars.join(', ')}`);
+  process.exit(1);
+}
+
 // Middleware for Discord signature verification
 app.use(express.raw({ type: 'application/json' }));
 
@@ -220,7 +229,9 @@ async function sendFollowup(content, token) {
   // Send each chunk
   for (const chunk of chunks) {
     try {
-      const response = await fetch(`https://discord.com/api/v10/webhooks/${process.env.APP_ID}/${token}/messages`, {
+      const webhookUrl = `https://discord.com/api/v10/webhooks/${process.env.APP_ID}/${token}/messages`;
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -231,7 +242,9 @@ async function sendFollowup(content, token) {
       });
 
       if (!response.ok) {
-        console.error(`Error sending followup: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Error sending followup: ${response.status} - ${errorText}`);
+        console.error(`Webhook URL: ${webhookUrl}`);
       }
     } catch (error) {
       console.error('Error sending followup:', error);
