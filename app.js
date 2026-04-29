@@ -61,6 +61,9 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         const channelId = body.channel_id;
         
+        // Small delay to ensure Discord has processed the defer
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Send status message
         await sendFollowup('⏳ Fetching all messages from this channel...', body.token);
 
@@ -229,7 +232,7 @@ async function sendFollowup(content, token) {
   // Send each chunk
   for (const chunk of chunks) {
     try {
-      const webhookUrl = `https://discord.com/api/v10/webhooks/${process.env.APP_ID}/${token}/messages`;
+      const webhookUrl = `https://discord.com/api/v10/webhooks/${process.env.APP_ID}/${token}`;
       
       const response = await fetch(webhookUrl, {
         method: 'POST',

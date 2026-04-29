@@ -22,7 +22,7 @@ export async function summarizeMessages(messages) {
           content: `Please summarize the following Discord messages in a concise and helpful way. Focus on the main topics and key points:\n\n${messageText}`,
         },
       ],
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.1-8b-instant',
       max_tokens: 1024,
       temperature: 0.7,
     });
