@@ -14,28 +14,19 @@ export async function summarizeMessages(messages) {
     .map((msg) => `${msg.author}: ${msg.content}`)
     .join('\n');
 
+  const requestSize = messageText.length;
+  console.log(`📊 Request size: ${requestSize} chars, ${messages.length} messages`);
+
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: [
         {
           role: 'user',
-          content: `You are a professional technical writer and Discord community analyst. Please provide a well-structured and comprehensive summary of the following Discord conversation. Focus on:
-
-1. **Main Discussion Topics** - What were the primary topics discussed?
-2. **Key Decisions** - Any conclusions or decisions made?
-3. **Action Items** - Any follow-ups or next steps?
-4. **Important Disagreements** - Any conflicts or differing opinions?
-5. **Overall Sentiment** - What was the tone (constructive, heated, supportive, etc)?
-6. **Key Contributors** - Who were the main participants and what did they contribute?
-
-Format your summary with clear markdown sections, bullet points, and emphasis on important details. Make it professional yet conversational.
-
-Discord Conversation (${messages.length} messages):
-${messageText}`,
+          content: `Summarize this Discord conversation. Include: main topics, key decisions, action items, sentiment, and key contributors. Keep it concise and well-formatted.\n\nMessages (${messages.length}):\n${messageText}`,
         },
       ],
       model: 'groq/compound',
-      max_tokens: 2048,
+      max_tokens: 1500,
       temperature: 0.7,
     });
 
@@ -50,7 +41,7 @@ export async function fetchChannelMessages(channelId, token) {
   const allMessages = [];
   let lastMessageId = null;
   let pageCount = 0;
-  const MAX_MESSAGES = 300; // Conservative: 300 messages with 150 char truncation prevents 413 errors
+  const MAX_MESSAGES = 200; // Conservative: 200 messages with 100 char truncation
 
   try {
     while (true) {
@@ -86,7 +77,7 @@ export async function fetchChannelMessages(channelId, token) {
         .map((msg) => ({
           author: msg.author.username,
           authorId: msg.author.id,
-          content: msg.content.slice(0, 150), // Limit each message to 150 chars to prevent request size errors
+          content: msg.content.slice(0, 100), // Limit each message to 100 chars
           timestamp: msg.timestamp,
         }))
         .filter((msg) => msg.content.length > 0);

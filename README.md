@@ -4,7 +4,7 @@ A Discord bot that reads messages from a channel and creates AI-powered summarie
 
 ## Features
 
-✅ Summarize the last **300 messages** from a channel (optimized for groq/compound API limits)
+✅ Summarize the last **200 messages** from a channel (optimized for groq/compound API limits)
 ✅ **Professional, detailed summaries** with structure, topics, decisions, and action items
 ✅ Instant single-pass summarization (no chunking needed)
 ✅ Filter by user or time period
@@ -68,11 +68,11 @@ npm start
 
 | Command | Description |
 |---------|-------------|
-| `/summarize` | Summarize the last 300 messages from the channel (instant!) |
-| `/summarize_user` | Summarize messages from a specific user (up to 300) |
-| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) - up to 300 |
-| `/search_summarize` | Search for keyword and summarize matching messages (up to 300) |
-| `/stats` | Show channel statistics (last 300 messages) |
+| `/summarize` | Summarize the last 200 messages from the channel (instant!) |
+| `/summarize_user` | Summarize messages from a specific user (up to 200) |
+| `/summarize_period` | Summarize messages from a time period (1h, 24h, 7d, 30d) - up to 200 |
+| `/search_summarize` | Search for keyword and summarize matching messages (up to 200) |
+| `/stats` | Show channel statistics (last 200 messages) |
 | `/test` | Check if bot is online |
 
 ## Model & Performance
@@ -85,34 +85,34 @@ npm start
 - **Max Tokens per Request**: ~150,000 
 
 **Optimizations:**
-- ✅ Maximum 300 messages per request (prevents API size errors)
-- ✅ Each message truncated to 150 characters (quality over quantity)
+- ✅ Maximum 200 messages per request (prevents API size errors)
+- ✅ Each message truncated to 100 characters (lean, efficient)
 - ✅ Instant responses (single API call)
-- ✅ Professional summaries with detailed analysis
+- ✅ Professional summaries with concise analysis
 - ⚠️ 250 requests/day limit (plenty for personal use)
 
-**Why 300 messages with 150 char truncation?**
-- API stability: Prevents "Request Entity Too Large" (413) errors
+**Why 200 messages with 100 char truncation?**
+- API stability: Prevents "Request Entity Too Large" (413) errors completely
 - Quality: Focuses on recent, relevant conversations
 - Speed: Single request = instant response
-- Reliability: Tested and proven to work consistently
-- Coverage: 300 messages = ~1 hour of active channel conversation
+- Reliability: Conservative settings ensure consistent performance
+- Coverage: 200 messages = ~30-45 min of active channel conversation
 
 ## Limitations & Notes
 
 ⚠️ **Rate Limits**: 
 - 250 API requests per day (each summary = 1 request)
 - That's ~8 summaries per hour = More than enough for a personal bot!
-- Each message is limited to 150 characters to prevent "Request Entity Too Large" errors
+- Each message is limited to 100 characters to prevent "Request Entity Too Large" errors
 
 📊 **Message Range**: 
-- Analyzes the last **300 messages** per request
-- Messages older than 300 won't be included
-- Each message content is truncated to 150 chars for API stability
-- Perfect for analyzing recent conversations (~1 hour of typical chat)
+- Analyzes the last **200 messages** per request
+- Messages older than 200 won't be included
+- Each message content is truncated to 100 chars for API stability
+- Perfect for analyzing recent conversations (~30-45 min of typical chat)
 
 💡 **If you need more:**
-- The 300-message limit ensures API stability and avoids request size errors
+- The 200-message limit ensures API stability and avoids request size errors
 - For longer conversations, run `/summarize` multiple times across different days
 - Or increase `MAX_MESSAGES` and adjust char truncation in `summaryHandler.js` if you want to test
 
@@ -128,7 +128,7 @@ npm start
 
 ### "Request too large"
 - You're trying to summarize too many messages
-- Bot is limited to 300 messages on free plan
+- Bot is limited to 200 messages on free plan
 - Reduce the number or upgrade Groq
 
 ## Notes
