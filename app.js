@@ -65,7 +65,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         await new Promise(resolve => setTimeout(resolve, 500));
         
         // Send status message
-        await sendFollowup('⏳ Fetching last 1000 messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
 
         // Fetch messages from channel (limited to last 300 for Groq free tier)
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
@@ -98,7 +98,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const userId = body.data.options?.find((o) => o.name === 'user')?.value;
 
-        await sendFollowup('⏳ Fetching last 1000 messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const userMessages = filterMessagesByUser(messages, userId);
 
@@ -126,7 +126,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const period = body.data.options?.find((o) => o.name === 'period')?.value;
 
-        await sendFollowup(`⏳ Fetching last 1000 messages from this channel...`, body.token);
+        await sendFollowup(`⏳ Fetching last 300 messages from this channel...`, body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const periodMessages = filterMessagesByPeriod(messages, period);
 
@@ -154,7 +154,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
         const channelId = body.channel_id;
         const keyword = body.data.options?.find((o) => o.name === 'keyword')?.value;
 
-        await sendFollowup(`⏳ Fetching last 1000 messages and searching for "${keyword}"...`, body.token);
+        await sendFollowup(`⏳ Fetching last 300 messages and searching for "${keyword}"...`, body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const foundMessages = filterMessagesByKeyword(messages, keyword);
 
@@ -181,7 +181,7 @@ app.post('/interactions', verifyKeyMiddleware(process.env.PUBLIC_KEY), async (re
 
         const channelId = body.channel_id;
 
-        await sendFollowup('⏳ Fetching last 1000 messages from this channel...', body.token);
+        await sendFollowup('⏳ Fetching last 300 messages from this channel...', body.token);
         const messages = await fetchChannelMessages(channelId, process.env.DISCORD_TOKEN);
         const stats = getChannelStats(messages);
 
@@ -230,7 +230,8 @@ async function sendFollowup(content, token) {
   }
   
   // Send each chunk
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
     try {
       const webhookUrl = `https://discord.com/api/v10/webhooks/${process.env.APP_ID}/${token}`;
       
@@ -245,12 +246,23 @@ async function sendFollowup(content, token) {
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          console.error(`⚠️ Webhook expired (404). The interaction token may have timed out.`);
+          return;
+        }
         const errorText = await response.text();
-        console.error(`Error sending followup: ${response.status} - ${errorText}`);
-        console.error(`Webhook URL: ${webhookUrl}`);
+        console.error(`Error sending followup ${i + 1}/${chunks.length}: ${response.status}`);
+        console.error(`Response: ${errorText}`);
+      } else {
+        console.log(`✅ Sent message ${i + 1}/${chunks.length}`);
+      }
+      
+      // Add delay between messages
+      if (i < chunks.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error) {
-      console.error('Error sending followup:', error);
+      console.error('Error sending followup:', error.message);
     }
   }
 }
