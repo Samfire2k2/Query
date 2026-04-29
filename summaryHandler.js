@@ -53,7 +53,7 @@ export async function fetchChannelMessages(channelId, token) {
   const allMessages = [];
   let lastMessageId = null;
   let pageCount = 0;
-  const MAX_MESSAGES = 200; // Conservative: 200 messages with 100 char truncation
+  const MAX_MESSAGES = 100; // Aggressive: 100 messages with 80 char truncation prevents 413 errors
 
   try {
     while (true) {
@@ -89,7 +89,7 @@ export async function fetchChannelMessages(channelId, token) {
         .map((msg) => ({
           author: msg.author.username,
           authorId: msg.author.id,
-          content: msg.content.slice(0, 100), // Limit each message to 100 chars
+          content: msg.content.slice(0, 80), // Limit each message to 80 chars
           timestamp: msg.timestamp,
         }))
         .filter((msg) => msg.content.length > 0);
